@@ -9,7 +9,7 @@
 
 ### Execute
 
-1. Delete the 'TOKEN.json' first
+1. Delete the 'TOKEN.json' first if it exists.
 
 2. -> npm install
 
