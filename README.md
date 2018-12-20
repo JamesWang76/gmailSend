@@ -15,6 +15,6 @@
 
 3. -> nodemon gmailSend.js
 
-4. click the website in console, it's for the authorization.
+4. click the authoriz website showed in console .
 
 5. It would generate a new TOKEN.json after STEP 4, the new file includes ACCESS_TOKEN, REFRESH_TOKEN, blabla...
