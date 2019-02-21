@@ -2,20 +2,29 @@ const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
 const mailcomposer = require('mailcomposer').MailComposer
-
+var INIT = false;
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/gmail.send', 'https://mail.google.com/' , 'https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.compose'];
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
-const TOKEN_PATH = 'token.json';
-
+const TOKEN_PATH = __dirname+'/token.json';
 // Load client secrets from a local file.
-fs.readFile('credentials.json', (err, content) => {
-  if (err) return console.log('Error loading client secret file:', err);
-  // Authorize a client with credentials, then call the Gmail API.
-  authorize(JSON.parse(content), sendMessage);
-});
+
+
+if(INIT===true){
+  let to = "jaja076076@gmail.com"
+  let txt = "test"
+  sendMail(to, txt)
+}
+
+function sendMail(to, txt){
+  fs.readFile(__dirname+'/credentials.json', (err, content) => {
+    if (err) return console.log('Error loading client secret file:', err);
+    // Authorize a client with credentials, then call the Gmail API.
+    authorize(JSON.parse(content), to, txt, sendMessage);
+  });
+}
 
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
@@ -23,7 +32,7 @@ fs.readFile('credentials.json', (err, content) => {
  * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
-function authorize(credentials, callback) {
+function authorize(credentials, to, txt, callback) {
   const {client_secret, client_id, redirect_uris} = credentials.installed;
   const oAuth2Client = new google.auth.OAuth2(
       client_id, client_secret, redirect_uris[0]);
@@ -32,7 +41,7 @@ function authorize(credentials, callback) {
   fs.readFile(TOKEN_PATH, (err, token) => {
     if (err) return getNewToken(oAuth2Client, callback);
     oAuth2Client.setCredentials(JSON.parse(token));
-    callback(oAuth2Client);
+    callback(oAuth2Client, to, txt);
   });
 }
 
@@ -42,7 +51,7 @@ function authorize(credentials, callback) {
  * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
  * @param {getEventsCallback} callback The callback for the authorized client.
  */
-function getNewToken(oAuth2Client, callback) {
+function getNewToken(oAuth2Client, to, txt, callback) {
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
@@ -62,7 +71,7 @@ function getNewToken(oAuth2Client, callback) {
         if (err) return console.error(err);
         console.log('Token stored to', TOKEN_PATH);
       });
-      callback(oAuth2Client);
+      callback(oAuth2Client, to, txt);
     });
   });
 }
@@ -89,18 +98,17 @@ function listLabels(auth) {
     }
   });
 }
-async function sendMessage(auth)
+function sendMessage(auth, to, txt)
 {
   const gmail = google.gmail({version: 'v1', auth});
   let mail = new mailcomposer(
     {
-      to: "jaja076076@gmail.com",
-      text: "I hope this works",
-      subject: "Test email gmail-nodemailer-composer",
+      to: to,
+      text: txt,
+      subject: "AINIMAL 忘記密碼",
       textEncoding: "base64",
     });
     console.log(mail)
-
   mail.compile().build( (error, msg) => {
     if (error) return console.log('Error compiling email ' + error);
     const encodedMessage = Buffer.from(msg)
@@ -114,6 +122,7 @@ async function sendMessage(auth)
          resource: {
            'raw': encodedMessage
          }
-       });
+       }).catch(error => console.log('error: ', error));
   })
 }
+module.exports = {sendMail};
